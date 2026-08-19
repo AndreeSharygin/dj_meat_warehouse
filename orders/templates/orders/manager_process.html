@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Сборка заявки #{{ order.order_number }}{% endblock %}
+{% block content %}
+<h3>📦 Сборка заявки #{{ order.order_number }}</h3>
+
+<div class="card p-3 shadow-sm">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <p><strong>Клиент:</strong> {{ order.client.name }} ({{ order.client.email }})</p>
+            <p>
+                <strong>Рейтинг:</strong>
+                <span class="badge bg-secondary">⭐ {{ order.client.rating }}/5</span>
+                {% if order.client.has_discount %}
+                    <span class="badge bg-success">Скидка 5%</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Дата отгрузки:</strong> {{ order.shipment_date|date:"d.m.Y" }}</p>
+            <p><strong>Создана:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+        </div>
+    </div>
+
+    {% if order.comment %}
+        <div class="alert alert-info">
+            💬 <strong>Комментарий клиента:</strong> {{ order.comment }}
+        </div>
+    {% endif %}
+
+    <form method="post" id="process-form">
+        {% csrf_token %}
+
+        <h5>Корректировка товаров</h5>
+        <div class="alert alert-warning">
+            ⚠️ Измените количество каждого товара при необходимости.
+            Если установить 0 — позиция удаляется, остатки вернутся на склад.
+        </div>
+
+        <table class="table">
+            <thead class="table-dark">
+                <tr>
+                    <th>Наименование</th>
+                    <th>Цена (₽/кг)</th>
+                    <th>Заказано (кг)</th>
+                    <th>На складе (кг)</th>
+                    <th>Максимум (кг)</th>
+                    <th>Новое кол-во (кг)</th>
+                    <th>Стоимость (₽)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for data in items_data %}
+                <tr>
+                    <td>
+                        <strong>{{ data.item.product_name }}</strong>
+                        <input type="hidden" name="item_id" value="{{ data.item.pk }}">
+                    </td>
+                    <td>{{ data.item.price }} ₽</td>
+                    <td>{{ data.item.quantity }} кг</td>
+                    <td>
+                        {% if data.item.product %}
+                            {{ data.stock }} кг
+                        {% else %}
+                            <span class="text-danger">Товар удалён</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ data.max_available }} кг</td>
+                    <td>
+                        <input type="number"
+                               name="new_quantity"
+                               class="form-control qty-input"
+                               step="0.01"
+                               min="0"
+                               max="{{ data.max_available }}"
+                               value="{{ data.item.quantity }}"
+                               data-price="{{ data.item.price }}"
+                               onchange="recalculate()"
+                               oninput="recalculate()"
+                               style="width: 150px;">
+                    </td>
+                    <td class="item-cost">
+                        {{ data.item.item_cost }} ₽
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="6" class="text-end"><strong>Итого:</strong></td>
+                    <td id="total-cost"><strong>{{ order.total_cost_without_discount }} ₽</strong></td>
+                </tr>
+                {% if order.client.has_discount %}
+                <tr class="total-row">
+                    <td colspan="6" class="text-end"><strong>Со скидкой 5%:</strong></td>
+                    <td id="total-discount"><strong class="text-success">{{ order.total_cost }} ₽</strong></td>
+                </tr>
+                {% endif %}
+            </tfoot>
+        </table>
+
+        <div class="mb-3">
+            <label class="form-label"><strong>Примечание менеджера (необязательно):</strong></label>
+            <textarea name="manager_note" class="form-control" rows="3"
+                      placeholder="Причина корректировки, комментарий...">{{ order.manager_note }}</textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-warehouse btn-lg">
+                📦 Взять в сборку
+            </button>
+            <a href="{% url 'orders:manager_orders' %}" class="btn btn-outline-secondary btn-lg">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function recalculate() {
+    let total = 0;
+    const inputs = document.querySelectorAll('.qty-input');
+    const costs = document.querySelectorAll('.item-cost');
+
+    inputs.forEach(function(input, index) {
+        const price = parseFloat(input.dataset.price) || 0;
+        const qty = parseFloat(input.value) || 0;
+        const cost = price * qty;
+        total += cost;
+        costs[index].textContent = cost.toFixed(2) + ' ₽';
+    });
+
+    document.getElementById('total-cost').innerHTML =
+        '<strong>' + total.toFixed(2) + ' ₽</strong>';
+
+    const discountEl = document.getElementById('total-discount');
+    if (discountEl) {
+        discountEl.innerHTML =
+            '<strong class="text-success">' + (total * 0.95).toFixed(2) + ' ₽</strong>';
+    }
+}
+
+document.getElementById('process-form').addEventListener('submit', function(e) {
+    let allZero = true;
+    document.querySelectorAll('.qty-input').forEach(function(inp) {
+        const val = parseFloat(inp.value) || 0;
+        if (val > 0) allZero = false;
+        if (val < 0) {
+            e.preventDefault();
+            alert('Количество не может быть отрицательным.');
+        }
+    });
+    if (allZero) {
+        if (!confirm('Все позиции обнулены. Заявка будет удалена. Продолжить?')) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
+{% endblock %}

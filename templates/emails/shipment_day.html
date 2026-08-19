@@ -1,0 +1,21 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>⏰ Напоминание: отгрузка сегодня!</h2>
+<p>Здравствуйте, <strong>{{ order.client.name }}</strong>!</p>
+<div class="warning-box">
+    <strong>📅 Сегодня ({{ order.shipment_date|date:"d.m.Y" }}) — день отгрузки по заявке #{{ order.order_number }}!</strong>
+</div>
+<h3>📦 Товары к получению:</h3>
+<table class="items-table">
+    <thead><tr><th>Товар</th><th>Кол-во (кг)</th><th>Цена (руб/кг)</th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr><td><strong>{{ item.product_name }}</strong></td><td>{{ item.quantity }}</td><td>{{ item.price }}</td></tr>
+    {% endfor %}
+    <tr class="total-row"><td colspan="2"><strong>ИТОГО:</strong></td><td><strong>{{ order.total_cost }} руб</strong></td></tr>
+    </tbody>
+</table>
+<div class="danger-box">
+    ⚠️ <strong>Важно!</strong> При неявке заявка будет аннулирована, товары возвращены на склад, а ваш рейтинг понижен.
+</div>
+{% endblock %}

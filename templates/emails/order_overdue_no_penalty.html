@@ -1,0 +1,24 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>🗑️ Заявка #{{ order.order_number }} удалена</h2>
+<p>Здравствуйте, <strong>{{ order.client.name }}</strong>!</p>
+<div class="warning-box">
+    Ваша заявка #{{ order.order_number }} (отгрузка {{ order.shipment_date|date:"d.m.Y" }}) была просрочена.
+</div>
+<p>Статус заявки: <strong>{{ status_display }}</strong>.</p>
+<div class="success-box" style="color: #2e7d32;">
+    <strong>Штраф к рейтингу не применяется</strong>, так как заявка не была собрана.
+</div>
+<h3>📦 Товары возвращены на склад:</h3>
+<table class="items-table">
+    <thead><tr><th>Товар</th><th>Кол-во (кг)</th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr><td><strong>{{ item.product_name }}</strong></td><td>{{ item.quantity }}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="info-box">
+    Если товар всё ещё нужен, создайте новую заявку с актуальной датой отгрузки.
+</div>
+{% endblock %}

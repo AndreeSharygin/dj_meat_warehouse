@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Регистрация{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-4 shadow">
+            <h3 class="mb-3 text-center">Регистрация клиента</h3>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                        <div class="text-danger small mb-2">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+                <button type="submit" class="btn btn-warehouse w-100">Зарегистрироваться</button>
+            </form>
+            <p class="mt-3 text-center">
+{#                <style>#}
+{#                    a.register-link {#}
+{#                         background-color: #6d0000;#}
+{#                         color: white;#}
+{#                         border-radius: 5px;#}
+{#                    }#}
+{#                    a.register-link:hover {#}
+{#                        background-color: #6d0000;#}
+{#                        color: black;#}
+{#                    }#}
+{#                </style>#}
+                Уже есть аккаунт? <a href="{% url 'accounts:login' %}"class="register-link">Войти</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

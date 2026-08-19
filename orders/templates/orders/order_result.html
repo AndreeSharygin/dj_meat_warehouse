@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Результат заявки #{{ order.order_number }}{% endblock %}
+{% block content %}
+<h3>📋 Результат заявки #{{ order.order_number }}</h3>
+
+<div class="card p-3 shadow-sm">
+    <p><strong>Дата отгрузки:</strong> {{ order.shipment_date|date:"d.m.Y" }}</p>
+
+    {% if order.manager_note %}
+        <div class="alert alert-secondary">
+            📝 <strong>Примечание менеджера:</strong> {{ order.manager_note }}
+        </div>
+    {% endif %}
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Кол-во (кг)</th>
+                {% if order.was_adjusted %}
+                    <th>Заказано (кг)</th>
+                    <th>Изменение</th>
+                {% endif %}
+                <th>Цена (₽/кг)</th>
+                <th>Стоимость (₽)</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in order.items.all %}
+            <tr {% if item.was_adjusted %}class="table-warning"{% endif %}>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.quantity }} кг</td>
+                {% if order.was_adjusted %}
+                    <td>
+                        {% if item.original_quantity %}
+                            {{ item.original_quantity }} кг
+                        {% else %}
+                            {{ item.quantity }} кг
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.was_adjusted %}
+                            {% if item.quantity_increased %}
+                                <span class="text-success fw-bold">+{{ item.quantity_difference_abs }} кг ↑</span>
+                            {% elif item.quantity_decreased %}
+                                <span class="text-danger fw-bold">−{{ item.quantity_difference_abs }} кг ↓</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                {% endif %}
+                <td>{{ item.price }} ₽</td>
+                <td>{{ item.item_cost }} ₽</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            {% if order.client.has_discount %}
+                <tr>
+                    {% if order.was_adjusted %}
+                        <td colspan="5" class="text-end">Сумма без скидки:</td>
+                    {% else %}
+                        <td colspan="3" class="text-end">Сумма без скидки:</td>
+                    {% endif %}
+                    <td><del>{{ order.total_cost_without_discount }} ₽</del></td>
+                </tr>
+                <tr class="total-row">
+                    {% if order.was_adjusted %}
+                        <td colspan="5" class="text-end"><strong>Итого со скидкой 5%:</strong></td>
+                    {% else %}
+                        <td colspan="3" class="text-end"><strong>Итого со скидкой 5%:</strong></td>
+                    {% endif %}
+                    <td><strong class="text-success">{{ order.total_cost }} ₽</strong></td>
+                </tr>
+            {% else %}
+                <tr class="total-row">
+                    {% if order.was_adjusted %}
+                        <td colspan="5" class="text-end"><strong>Итого:</strong></td>
+                    {% else %}
+                        <td colspan="3" class="text-end"><strong>Итого:</strong></td>
+                    {% endif %}
+                    <td><strong>{{ order.total_cost }} ₽</strong></td>
+                </tr>
+            {% endif %}
+        </tfoot>
+    </table>
+
+    {% if order.was_adjusted %}
+        <div class="alert alert-warning">
+            ⚠️ Количество некоторых товаров было скорректировано менеджером при сборке.
+        </div>
+    {% endif %}
+
+    <div class="alert alert-success">
+        ✅ Заявка собрана. Заберите в указанный день отгрузки.
+    </div>
+</div>
+
+<a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary mt-3">← Назад</a>
+{% endblock %}

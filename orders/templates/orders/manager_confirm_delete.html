@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Удаление заявки #{{ order.order_number }}{% endblock %}
+{% block content %}
+<div class="card p-4 shadow-sm">
+    <h3>🗑️ Удалить заявку #{{ order.order_number }}</h3>
+
+    <table class="table mt-3">
+        <tr><th>Клиент</th><td>{{ order.client.name }} ({{ order.client.email }})</td></tr>
+        <tr><th>Дата отгрузки</th><td>{{ order.shipment_date|date:"d.m.Y" }}</td></tr>
+        <tr><th>Статус</th><td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td></tr>
+    </table>
+
+    <h5>Товары:</h5>
+    <table class="table table-sm">
+        <thead><tr><th>Товар</th><th>Кол-во (кг)</th><th>Цена (₽/кг)</th></tr></thead>
+        <tbody>
+        {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="alert alert-danger">
+        ⚠️ Заявка будет удалена. Остатки вернутся на склад.
+        Клиент получит уведомление с указанной причиной.
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label"><strong>Причина удаления:</strong></label>
+            {{ form.reason }}
+            {% for error in form.reason.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-danger btn-lg">🗑️ Удалить и уведомить клиента</button>
+        <a href="{% url 'orders:manager_orders' %}" class="btn btn-outline-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}

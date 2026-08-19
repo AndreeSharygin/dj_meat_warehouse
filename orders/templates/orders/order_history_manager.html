@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}История выданных заявок{% endblock %}
+{% block content %}
+<h3>📜 Выданные заявки по клиентам (последние 10)</h3>
+
+{% if clients_data %}
+{% for data in clients_data %}
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">
+            👤 {{ data.client.name }} ({{ data.client.email }})
+            <span class="badge bg-secondary">⭐ {{ data.client.rating }}/5</span>
+            {% if data.client.has_discount %}
+                <span class="badge bg-success">Скидка 5%</span>
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body p-2">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Дата выдачи</th>
+                    <th>Дата отгрузки</th>
+                    <th>Товары</th>
+                    <th>Сумма</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for order in data.orders %}
+                <tr>
+                    <td>{{ order.order_number }}</td>
+                    <td>{{ order.issued_at|date:"d.m.Y H:i" }}</td>
+                    <td>{{ order.shipment_date|date:"d.m.Y" }}</td>
+                    <td>
+                        {% for item in order.items.all %}
+                            {{ item.product_name }} ({{ item.quantity }} кг){% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ order.total_cost }} ₽</td>
+                    <td>
+                        <a href="{% url 'orders:order_detail' order.pk %}" class="btn btn-sm btn-outline-primary">Детали</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="alert alert-info">Нет выданных заявок.</div>
+{% endif %}
+
+<a href="{% url 'orders:manager_orders' %}" class="btn btn-outline-secondary mt-3">← К управлению</a>
+{% endblock %}

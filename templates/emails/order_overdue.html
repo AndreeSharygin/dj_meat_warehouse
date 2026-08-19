@@ -1,0 +1,29 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>❌ Заявка #{{ order.order_number }} просрочена</h2>
+<p>Здравствуйте, <strong>{{ order.client.name }}</strong>!</p>
+<div class="danger-box">
+    Ваша заявка #{{ order.order_number }} (отгрузка {{ order.shipment_date|date:"d.m.Y" }}) не была забрана вовремя.
+</div>
+<h3>📦 Товары возвращены на склад:</h3>
+<table class="items-table">
+    <thead><tr><th>Товар</th><th>Кол-во (кг)</th><th>Цена (руб/кг)</th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr><td><strong>{{ item.product_name }}</strong></td><td>{{ item.quantity }}</td><td>{{ item.price }}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="warning-box">
+    <strong>Ваш рейтинг понижен</strong><br>
+    <span class="rating-stars">{{ stars }}</span> <strong>{{ new_rating }}/5</strong>
+</div>
+{% if new_rating < 5 %}
+<div class="info-box">📈 Рейтинг будет восстанавливаться на 1 балл каждые 5 дней (отсчёт с {{ order.shipment_date|date:"d.m.Y" }}) при отсутствии новых просрочек.</div>
+{% endif %}
+<div class="info-box">
+    <ul style="margin:0; padding-left:18px;">
+        <li>При рейтинге ниже 5 — скидка 5% недоступна</li>
+    </ul>
+</div>
+{% endblock %}

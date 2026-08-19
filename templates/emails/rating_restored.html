@@ -1,0 +1,12 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>🎉 Рейтинг восстановлен!</h2>
+<p>Здравствуйте, <strong>{{ client.name }}</strong>!</p>
+<div class="success-box">
+    <strong>Ваш рейтинг восстановлен!</strong><br>
+    <span class="rating-stars">{{ stars }}</span> <strong>{{ client.rating }}/5</strong>
+</div>
+{% if client.has_discount %}
+<p><span class="discount-badge">💰 Скидка 5% снова активна!</span></p>
+{% endif %}
+{% endblock %}

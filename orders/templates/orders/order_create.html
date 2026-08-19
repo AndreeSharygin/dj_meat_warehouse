@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Создание заявки{% endblock %}
+{% block content %}
+<h3>Новая заявка</h3>
+
+<div class="card p-3 shadow-sm">
+    <form method="post" id="order-form">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label"><strong>Дата отгрузки:</strong></label>
+            <input type="date" name="shipment_date" class="form-control" required
+                   style="max-width: 250px;">
+        </div>
+
+        <h5>Выберите товары</h5>
+
+        {% if products %}
+        <table class="table" id="products-table">
+            <thead class="table-dark">
+                <tr>
+                    <th>Наименование</th>
+                    <th>Цена (руб/кг)</th>
+                    <th>На складе (кг)</th>
+                    <th style="width: 150px;">Кол-во (кг)</th>
+                    <th style="width: 150px;">Сумма (руб)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for product in products %}
+                <tr>
+                    <td>
+                        <strong>{{ product.name }}</strong>
+                        <input type="hidden" name="product_id" value="{{ product.pk }}">
+                    </td>
+                    <td class="product-price" data-price="{{ product.price }}">
+                        {{ product.price }}
+                    </td>
+                    <td class="product-stock" data-stock="{{ product.quantity }}">
+                        {{ product.quantity }} кг
+                    </td>
+                    <td>
+                        <input type="number"
+                               name="quantity"
+                               class="form-control qty-input"
+                               step="0.01"
+                               min="0"
+                               max="{{ product.quantity }}"
+                               value="0"
+                               data-price="{{ product.price }}"
+                               data-stock="{{ product.quantity }}"
+                               data-name="{{ product.name }}"
+                               oninput="recalculate()">
+                    </td>
+                    <td class="item-sum text-end fw-bold">
+                        0.00
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="table-light">
+                    <td colspan="4" class="text-end"><strong>Итого:</strong></td>
+                    <td class="text-end" id="total-sum"><strong>0.00 руб</strong></td>
+                </tr>
+                {% if has_discount %}
+                <tr class="table-success">
+                    <td colspan="4" class="text-end">
+                        <strong>Итого со скидкой 5%:</strong>
+                    </td>
+                    <td class="text-end" id="total-discount">
+                        <strong class="text-success">0.00 руб</strong>
+                    </td>
+                </tr>
+                {% endif %}
+            </tfoot>
+        </table>
+        {% else %}
+            <div class="alert alert-warning">Нет доступных товаров на складе.</div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label class="form-label"><strong>Комментарий (необязательно):</strong></label>
+            <textarea name="comment" class="form-control" rows="3"
+                      placeholder="Пожелания к заказу..."></textarea>
+        </div>
+
+        <div id="stock-errors" class="alert alert-danger" style="display: none;"></div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-warehouse btn-lg" id="submit-btn">
+                Создать заявку
+            </button>
+            <a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary btn-lg">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const HAS_DISCOUNT = {{ has_discount|yesno:"true,false" }};
+
+function recalculate() {
+    let total = 0;
+    const inputs = document.querySelectorAll('.qty-input');
+    const sums = document.querySelectorAll('.item-sum');
+    const overStock = [];
+
+    inputs.forEach(function(input, index) {
+        const price = parseFloat(input.dataset.price) || 0;
+        const stock = parseFloat(input.dataset.stock) || 0;
+        const name = input.dataset.name || '';
+        const qty = parseFloat(input.value) || 0;
+        const itemTotal = price * qty;
+
+        // Показываем сумму по позиции
+        sums[index].textContent = itemTotal > 0 ? itemTotal.toFixed(2) : '0.00';
+
+        total += itemTotal;
+
+        // Подсветка превышения
+        const row = input.closest('tr');
+        if (qty > stock && qty > 0) {
+            row.classList.add('table-danger');
+            input.classList.add('is-invalid');
+            overStock.push(name + ' (на складе: ' + stock + ' кг, в зявке: ' + qty + ' кг)');
+        } else {
+            row.classList.remove('table-danger');
+            input.classList.remove('is-invalid');
+        }
+    });
+
+    // Итого
+    const totalEl = document.getElementById('total-sum');
+    totalEl.innerHTML = '<strong>' + total.toFixed(2) + ' руб</strong>';
+
+    // Итого со скидкой
+    if (HAS_DISCOUNT) {
+        const discountEl = document.getElementById('total-discount');
+        const discounted = total * 0.95;
+        discountEl.innerHTML = '<strong class="text-success">' + discounted.toFixed(2) + ' руб</strong>';
+    }
+
+    // Ошибки превышения
+    const errBlock = document.getElementById('stock-errors');
+    const submitBtn = document.getElementById('submit-btn');
+
+    if (overStock.length > 0) {
+        errBlock.style.display = 'block';
+        errBlock.innerHTML = '<strong>Недостаточно товара на складе:</strong><ul>' +
+            overStock.map(function(item) { return '<li>' + item + '</li>'; }).join('') +
+            '</ul>';
+        submitBtn.disabled = true;
+    } else {
+        errBlock.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+}
+
+// Валидация перед отправкой
+document.getElementById('order-form').addEventListener('submit', function(e) {
+    const inputs = document.querySelectorAll('.qty-input');
+    let hasItems = false;
+    let hasErrors = false;
+
+    inputs.forEach(function(input) {
+        const qty = parseFloat(input.value) || 0;
+        const stock = parseFloat(input.dataset.stock) || 0;
+        if (qty > 0) hasItems = true;
+        if (qty > stock) hasErrors = true;
+    });
+
+    if (!hasItems) {
+        e.preventDefault();
+        alert('Добавьте хотя бы один товар!');
+        return;
+    }
+
+    if (hasErrors) {
+        e.preventDefault();
+        alert('Исправьте количество товаров, превышающих остатки на складе!');
+        return;
+    }
+});
+
+// Начальный расчёт
+recalculate();
+</script>
+{% endblock %}

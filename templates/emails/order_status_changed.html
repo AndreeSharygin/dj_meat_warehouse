@@ -1,0 +1,10 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>🔄 Статус заявки #{{ order.order_number }} изменён</h2>
+<p>Здравствуйте, <strong>{{ order.client.name }}</strong>!</p>
+<div class="info-box">
+    <span class="badge badge-warning">{{ old_name }}</span>
+    &nbsp;→&nbsp;
+    <span class="badge badge-success">{{ new_name }}</span>
+</div>
+{% endblock %}

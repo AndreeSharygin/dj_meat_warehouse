@@ -1,0 +1,24 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>🎉 Заявка #{{ order.order_number }} выдана!</h2>
+<p>Здравствуйте, <strong>{{ order.client.name }}</strong>!</p>
+<div class="success-box">
+    Ваша заявка успешно выдана. Спасибо за покупку!
+</div>
+<div class="info-box">
+    <strong>📅 Дата:</strong> {{ order.shipment_date|date:"d.m.Y" }}
+</div>
+<h3>📦 Товары:</h3>
+<table class="items-table">
+    <thead><tr><th>Товар</th><th>Кол-во (кг)</th><th>Цена (руб/кг)</th><th>Стоимость</th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr><td><strong>{{ item.product_name }}</strong></td><td>{{ item.quantity }}</td><td>{{ item.price }}</td><td>{{ item.item_cost }} руб</td></tr>
+    {% endfor %}
+    <tr class="total-row"><td colspan="3"><strong>ИТОГО:</strong></td><td><strong>{{ order.total_cost }} руб</strong></td></tr>
+    </tbody>
+</table>
+{% if order.client.has_discount %}
+<p><span class="discount-badge">💰 Скидка 5% (рейтинг {{ order.client.rating }}/5)</span><br><small>Без скидки: {{ order.total_cost_without_discount }} руб</small></p>
+{% endif %}
+{% endblock %}

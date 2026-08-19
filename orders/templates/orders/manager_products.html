@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Товары на складе — Менеджер{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>📦 Товары на складе</h3>
+    <a href="{% url 'products:product_create' %}" class="btn btn-warehouse">➕ Добавить товар</a>
+</div>
+
+<div class="card p-3 mb-4 shadow-sm">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Поиск по названию</label>
+            <input type="text" name="search" class="form-control" value="{{ search }}" placeholder="Название товара...">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Наличие</label>
+            <select name="availability" class="form-select">
+                <option value="">Все</option>
+                <option value="available" {% if availability == 'available' %}selected{% endif %}>В наличии</option>
+                <option value="low" {% if availability == 'low' %}selected{% endif %}>Мало (< 10 кг)</option>
+                <option value="empty" {% if availability == 'empty' %}selected{% endif %}>Нет в наличии</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-warehouse">Найти</button>
+            <a href="{% url 'orders:manager_products' %}" class="btn btn-outline-secondary">Сброс</a>
+        </div>
+    </form>
+</div>
+
+{% if products %}
+<div class="card shadow-sm">
+    <table class="table mb-0">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Наименование</th>
+                <th>Цена (₽/кг)</th>
+                <th>Остаток (кг)</th>
+                <th>Статус</th>
+                <th>Обновлён</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for product in products %}
+            <tr {% if product.quantity <= 0 %}class="table-danger"{% elif product.quantity < 10 %}class="table-warning"{% endif %}>
+                <td>{{ product.pk }}</td>
+                <td><strong>{{ product.name }}</strong></td>
+                <td>{{ product.price }} ₽</td>
+                <td>{{ product.quantity }} кг</td>
+                <td>
+                    {% if product.quantity <= 0 %}
+                        <span class="badge bg-danger">Нет в наличии</span>
+                    {% elif product.quantity < 10 %}
+                        <span class="badge bg-warning text-dark">Заканчивается</span>
+                    {% else %}
+                        <span class="badge bg-success">В наличии</span>
+                    {% endif %}
+                </td>
+                <td>{{ product.updated_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'products:product_edit' product.pk %}" class="btn btn-sm btn-outline-primary">✏️ Изменить</a>
+                    <a href="{% url 'products:product_delete' product.pk %}" class="btn btn-sm btn-outline-danger">🗑️ Удалить</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card p-3 mt-3 shadow-sm">
+    <div class="row text-center">
+        <div class="col-md-3">
+            <h5>{{ total_products }}</h5>
+            <small class="text-muted">Всего наименований</small>
+        </div>
+        <div class="col-md-3">
+            <h5 class="text-success">{{ available_count }}</h5>
+            <small class="text-muted">В наличии</small>
+        </div>
+        <div class="col-md-3">
+            <h5 class="text-warning">{{ low_count }}</h5>
+            <small class="text-muted">Заканчивается</small>
+        </div>
+        <div class="col-md-3">
+            <h5 class="text-danger">{{ empty_count }}</h5>
+            <small class="text-muted">Нет в наличии</small>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="card p-4 text-center shadow-sm">
+    <p class="mb-2">На складе пока нет товаров.</p>
+    <a href="{% url 'products:product_create' %}" class="btn btn-warehouse">Добавить первый товар</a>
+</div>
+{% endif %}
+{% endblock %}

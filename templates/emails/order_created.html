@@ -1,0 +1,19 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>✅ Заявка #{{ order.order_number }} создана</h2>
+<p>Здравствуйте, <strong>{{ order.client.name }}</strong>!</p>
+<p>Ваша заявка принята и ожидает сборки.</p>
+<div class="info-box">
+    <strong>📅 Дата отгрузки:</strong> {{ order.shipment_date|date:"d.m.Y" }}
+</div>
+<h3>📦 Товары:</h3>
+<table class="items-table">
+    <thead><tr><th>Товар</th><th>Кол-во (кг)</th><th>Цена (руб/кг)</th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr><td><strong>{{ item.product_name }}</strong></td><td>{{ item.quantity }}</td><td>{{ item.price }}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+<p><span class="badge badge-info">Статус: Новая</span></p>
+{% endblock %}

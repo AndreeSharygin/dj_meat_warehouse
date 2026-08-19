@@ -1,0 +1,35 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>📋 Заявка #{{ order.order_number }} собрана</h2>
+<p>Здравствуйте, <strong>{{ order.client.name }}</strong>!</p>
+<p>Ваша заявка собрана и готова к выдаче.</p>
+<div class="info-box">
+    <strong>📅 Дата отгрузки:</strong> {{ order.shipment_date|date:"d.m.Y" }}
+</div>
+{% if order.was_adjusted %}
+<div class="warning-box">⚠️ Количество некоторых товаров было скорректировано менеджером.</div>
+{% endif %}
+{% if order.manager_note %}
+<div class="info-box">💬 <strong>Примечание менеджера:</strong> {{ order.manager_note }}</div>
+{% endif %}
+<h3>📦 Товары:</h3>
+<table class="items-table">
+    <thead><tr><th>Товар</th><th>Кол-во (кг)</th><th>Цена (руб/кг)</th><th>Стоимость</th><th>Примечание</th></tr></thead>
+    <tbody>
+    {% for item in items %}
+        <tr>
+            <td><strong>{{ item.product_name }}</strong></td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.item_cost }} руб</td>
+            <td>{% if item.was_adjusted %}<span class="badge badge-warning">заказано: {{ item.original_quantity }} кг</span>{% endif %}</td>
+        </tr>
+    {% endfor %}
+    <tr class="total-row"><td colspan="3"><strong>ИТОГО:</strong></td><td colspan="2"><strong>{{ order.total_cost }} руб</strong></td></tr>
+    </tbody>
+</table>
+{% if order.client.has_discount %}
+<p><span class="discount-badge">💰 Скидка 5% (рейтинг {{ order.client.rating }}/5)</span><br><small>Без скидки: {{ order.total_cost_without_discount }} руб</small></p>
+{% endif %}
+<div class="success-box">🏪 Заберите заявку со склада в указанный день.</div>
+{% endblock %}

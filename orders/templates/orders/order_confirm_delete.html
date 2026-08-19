@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Отказ от заявки #{{ order.order_number }}{% endblock %}
+{% block content %}
+<h3>Отказаться от заявки #{{ order.order_number }}?</h3>
+
+<div class="card p-3 shadow-sm">
+    <p><strong>Дата отгрузки:</strong> {{ order.shipment_date|date:"d.m.Y" }}</p>
+
+    <h5>Товары</h5>
+    <ul>
+    {% for item in order.items.all %}
+        <li>{{ item.product_name }} -- {{ item.quantity }} кг x {{ item.price }} руб/кг</li>
+    {% endfor %}
+    </ul>
+
+    <div class="alert alert-warning">
+        После отказа товары вернутся на склад.
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">Подтвердить отказ</button>
+            <a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

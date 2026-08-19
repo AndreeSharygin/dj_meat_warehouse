@@ -1,0 +1,9 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>🗑️ Заявка #{{ order.order_number }} удалена</h2>
+<p>Здравствуйте, <strong>{{ order.client.name }}</strong>!</p>
+<div class="danger-box">
+    <strong>Причина:</strong> {{ reason }}
+</div>
+<p>Если у вас есть вопросы, обратитесь к менеджеру склада.</p>
+{% endblock %}

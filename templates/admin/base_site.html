@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | Мясной склад{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">🥩 Мясной склад — Администрирование</a>
+</h1>
+<button id="theme-toggle" onclick="toggleTheme()" title="Сменить тему">🌙</button>
+{% endblock %}
+
+{% block extrastyle %}
+<link href="{% static 'css/admin_custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<script>
+function toggleTheme() {
+    const html = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+    const current = html.getAttribute('data-theme');
+
+    if (current === 'dark') {
+        html.removeAttribute('data-theme');
+        btn.textContent = '🌙';
+        localStorage.setItem('admin-theme', 'light');
+    } else {
+        html.setAttribute('data-theme', 'dark');
+        btn.textContent = '☀️';
+        localStorage.setItem('admin-theme', 'dark');
+    }
+}
+
+(function() {
+    const saved = localStorage.getItem('admin-theme');
+    const btn = document.getElementById('theme-toggle');
+    if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '☀️';
+    }
+})();
+</script>
+{% endblock %}

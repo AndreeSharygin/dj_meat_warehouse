@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Повторить заявку #{{ order.order_number }}{% endblock %}
+{% block content %}
+<h3>🔄 Повторить заявку #{{ order.order_number }}</h3>
+
+<div class="card p-3 shadow-sm">
+    <h5>Товары из оригинальной заявки:</h5>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Кол-во в заявке (кг)</th>
+                <th>На складе сейчас</th>
+                <th>Будет заказано</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in order.items.all %}
+            <tr {% if not item.product or item.product.quantity <= 0 %}class="table-danger"{% elif item.product.quantity < item.quantity %}class="table-warning"{% endif %}>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.quantity }} кг</td>
+                <td>
+                    {% if item.product %}
+                        {{ item.product.quantity }} кг
+                    {% else %}
+                        <span class="text-danger">Товар удалён</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not item.product or item.product.quantity <= 0 %}
+                        <span class="text-danger">Недоступен</span>
+                    {% elif item.product.quantity < item.quantity %}
+                        <span class="text-warning">{{ item.product.quantity }} кг (меньше оригинала)</span>
+                    {% else %}
+                        {{ item.quantity }} кг
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="alert alert-info">
+        ℹ️ Будут использованы <strong>актуальные цены</strong> товаров.
+        Если товара на складе меньше — будет заказано доступное количество.
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label"><strong>Дата отгрузки:</strong></label>
+            <input type="date" name="shipment_date" class="form-control" required
+                   style="max-width: 250px;">
+            <small class="text-muted">Выберите дату в будущем</small>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success btn-lg">✅ Подтвердить повтор</button>
+            <a href="{% url 'orders:order_history' %}" class="btn btn-outline-secondary btn-lg">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Мои заявки{% endblock %}
+{% block content %}
+<h3>Мои заявки</h3>
+
+<div class="card p-3 mb-4 shadow-sm">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Поиск по товару</label>
+            <input type="text" name="search" class="form-control" value="{{ search }}" placeholder="Название товара...">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Статус</label>
+            <select name="status" class="form-select">
+                <option value="">Все</option>
+                <option value="new" {% if status_filter == 'new' %}selected{% endif %}>Новые</option>
+                <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>На сборке</option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Собранные</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-warehouse">Найти</button>
+            <a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary">Сброс</a>
+        </div>
+    </form>
+</div>
+
+{% for order in orders %}
+<div class="card p-3 mb-3 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1">
+                Заявка #{{ order.order_number }}
+                <span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span>
+            </h5>
+            <p class="text-muted mb-1">Отгрузка: {{ order.shipment_date|date:"d.m.Y" }}</p>
+            <small class="text-muted">Создана: {{ order.created_at|date:"d.m.Y H:i" }}</small>
+            {% if order.comment %}
+                <p class="mt-1 mb-0"><small>💬 {{ order.comment }}</small></p>
+            {% endif %}
+        </div>
+        <div>
+            <a href="{% url 'orders:order_detail' order.pk %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+            {% if order.status == 'completed' %}
+                <a href="{% url 'orders:order_result' order.pk %}" class="btn btn-sm btn-success">Результат</a>
+            {% endif %}
+            {% if order.status != 'processing' %}
+                <a href="{% url 'orders:order_delete' order.pk %}" class="btn btn-sm btn-outline-danger">Отказаться</a>
+            {% endif %}
+        </div>
+    </div>
+    <table class="table table-sm mt-2 mb-0">
+        <thead><tr><th>Товар</th><th>Кол-во (кг)</th><th>Цена (₽/кг)</th></tr></thead>
+        <tbody>
+        {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% empty %}
+<div class="card p-4 text-center shadow-sm">
+    <p class="mb-2">У вас пока нет заявок.</p>
+    <a href="{% url 'orders:order_create' %}" class="btn btn-warehouse">Создать первую заявку</a>
+</div>
+{% endfor %}
+{% endblock %}

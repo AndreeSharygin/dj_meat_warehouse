@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Удаление товара{% endblock %}
+{% block content %}
+<div class="card p-4 shadow-sm">
+    <h3>🗑️ Удалить товар «{{ product.name }}»?</h3>
+
+    <table class="table mt-3">
+        <tr><th>Наименование</th><td>{{ product.name }}</td></tr>
+        <tr><th>Цена</th><td>{{ product.price }} ₽/кг</td></tr>
+        <tr><th>Остаток</th><td>{{ product.quantity }} кг</td></tr>
+    </table>
+
+    <div class="alert alert-danger">
+        ⚠️ Товар будет удалён со склада. Это действие нельзя отменить.
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Да, удалить</button>
+        <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}

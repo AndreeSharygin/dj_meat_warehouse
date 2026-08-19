@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Заявка #{{ order.order_number }}{% endblock %}
+{% block content %}
+<h3>Заявка #{{ order.order_number }}</h3>
+
+<div class="card p-3 shadow-sm">
+    <table class="table mb-3">
+        <tr><th>Клиент</th><td>{{ order.client.name }} ({{ order.client.email }})</td></tr>
+        <tr><th>Дата отгрузки</th><td>{{ order.shipment_date|date:"d.m.Y" }}</td></tr>
+        <tr>
+            <th>Статус</th>
+            <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+        </tr>
+        <tr><th>Создана</th><td>{{ order.created_at|date:"d.m.Y H:i" }}</td></tr>
+        {% if order.comment %}
+            <tr><th>Комментарий клиента</th><td>💬 {{ order.comment }}</td></tr>
+        {% endif %}
+        {% if order.manager_note %}
+            <tr><th>Примечание менеджера</th><td>📝 {{ order.manager_note }}</td></tr>
+        {% endif %}
+    </table>
+
+    <h5>Товары</h5>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Наименование</th>
+                <th>Кол-во (кг)</th>
+                {% if order.was_adjusted %}
+                    <th>Заказано (кг)</th>
+                    <th>Изменение</th>
+                {% endif %}
+                <th>Цена (₽/кг)</th>
+                <th>Стоимость (₽)</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in order.items.all %}
+            <tr {% if item.was_adjusted %}class="table-warning"{% endif %}>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.quantity }} кг</td>
+                {% if order.was_adjusted %}
+                    <td>
+                        {% if item.original_quantity %}
+                            {{ item.original_quantity }} кг
+                        {% else %}
+                            {{ item.quantity }} кг
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.was_adjusted %}
+                            {% if item.quantity_increased %}
+                                <span class="text-success fw-bold">+{{ item.quantity_difference_abs }} кг ↑</span>
+                            {% elif item.quantity_decreased %}
+                                <span class="text-danger fw-bold">−{{ item.quantity_difference_abs }} кг ↓</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                {% endif %}
+                <td>{{ item.price }} ₽</td>
+                <td>{{ item.item_cost }} ₽</td>
+            </tr>
+        {% endfor %}
+            <tr class="total-row">
+                {% if order.was_adjusted %}
+                    <td colspan="5" class="text-end"><strong>Итого:</strong></td>
+                {% else %}
+                    <td colspan="3" class="text-end"><strong>Итого:</strong></td>
+                {% endif %}
+                <td>
+                    {% if order.client.has_discount and order.status == 'completed' %}
+                        <del class="text-muted">{{ order.total_cost_without_discount }} ₽</del>
+                        <strong class="text-success"> {{ order.total_cost }} ₽ (скидка 5%)</strong>
+                    {% else %}
+                        <strong>{{ order.total_cost }} ₽</strong>
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if order.was_adjusted %}
+        <div class="alert alert-warning">
+            ⚠️ Количество некоторых товаров было скорректировано менеджером при сборке.
+        </div>
+    {% endif %}
+</div>
+
+<div class="mt-3">
+    {% if user.is_client %}
+        <a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary">← Назад</a>
+    {% else %}
+        <a href="{% url 'orders:manager_orders' %}" class="btn btn-outline-secondary">← Назад</a>
+    {% endif %}
+
+    {% if user.is_client and order.status != 'processing' %}
+    <a href="{% url 'orders:order_delete' order.pk %}"
+       class="btn btn-outline-danger">Отказаться от заявки</a>
+    {% endif %}
+</div>
+{% endblock %}

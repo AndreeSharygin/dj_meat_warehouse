@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}История выданных заявок{% endblock %}
+{% block content %}
+<h3>📜 Последние выданные заявки</h3>
+
+{% if orders %}
+{% for order in orders %}
+<div class="card p-3 mb-3 shadow-sm">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h5 class="mb-1">
+                Заявка #{{ order.order_number }}
+                <span class="badge bg-secondary">Выдана</span>
+                {% if order.was_adjusted %}
+                    <span class="badge bg-warning text-dark">скорректирована</span>
+                {% endif %}
+            </h5>
+            <p class="text-muted mb-1">
+                Отгрузка: {{ order.shipment_date|date:"d.m.Y" }} |
+                Выдана: {{ order.issued_at|date:"d.m.Y H:i" }}
+            </p>
+            {% if order.comment %}
+                <p class="mb-0"><small>💬 {{ order.comment }}</small></p>
+            {% endif %}
+        </div>
+        <div class="text-end">
+            <p class="fw-bold mb-1">{{ order.total_cost }} ₽</p>
+            <a href="{% url 'orders:order_detail' order.pk %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+            <a href="{% url 'orders:order_repeat' order.pk %}" class="btn btn-sm btn-success">🔄 Повторить</a>
+        </div>
+    </div>
+
+    <table class="table table-sm mt-2 mb-0">
+        <thead><tr><th>Товар</th><th>Кол-во (кг)</th><th>Цена (₽/кг)</th><th>Стоимость</th></tr></thead>
+        <tbody>
+        {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price }}</td>
+                <td>{{ item.item_cost }} ₽</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endfor %}
+{% else %}
+<div class="alert alert-info">У вас пока нет выданных заявок.</div>
+{% endif %}
+
+<a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary mt-3">← К заявкам</a>
+{% endblock %}
