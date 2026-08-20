@@ -64,14 +64,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', os.environ.get('DB_NAME', 'meat_warehouse')),
-        'USER': os.environ.get('POSTGRES_USER', os.environ.get('DB_USER', 'warehouse_user')),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', os.environ.get('DB_PASSWORD', 'warehouse_pass')),
-        'HOST': os.environ.get('DB_HOST', 'db'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': os.getenv('DB_NAME', 'meat_warehouse'),
+        'USER': os.getenv('DB_USER', 'warehouse_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'warehouse_pass'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
-
 # ═══════════ CACHE (Redis) ═══════════
 CACHES = {
     'default': {
