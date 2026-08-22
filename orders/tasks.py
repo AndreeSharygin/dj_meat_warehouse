@@ -1,5 +1,6 @@
 from django.utils import timezone
 from celery import shared_task
+from orders.services import send_rating_restored_email
 
 
 @shared_task
@@ -61,7 +62,8 @@ def check_shipment_dates():
         last_overdue_date__isnull=False,
     )
     for client in clients:
-        client.try_restore_rating()
+        if client.try_restore_rating():
+            send_rating_restored_email(client)
 
     invalidate_all_cache()
 

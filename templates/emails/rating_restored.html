@@ -1,12 +1,22 @@
-{% extends "emails/base_email.html" %}
-{% block content %}
-<h2>🎉 Рейтинг восстановлен!</h2>
-<p>Здравствуйте, <strong>{{ client.name }}</strong>!</p>
-<div class="success-box">
-    <strong>Ваш рейтинг восстановлен!</strong><br>
-    <span class="rating-stars">{{ stars }}</span> <strong>{{ client.rating }}/5</strong>
-</div>
-{% if client.has_discount %}
-<p><span class="discount-badge">💰 Скидка 5% снова активна!</span></p>
-{% endif %}
-{% endblock %}
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family:Arial,sans-serif; padding:20px;">
+    <h2 style="color:#28a745;">⭐ Ваш рейтинг восстановлен!</h2>
+    <p>Уважаемый(ая) <strong>{{ client.name }}</strong>,</p>
+    <p>Ваш рейтинг был повышен благодаря отсутствию просрочек.</p>
+    <table style="border-collapse:collapse; margin:15px 0;">
+        <tr>
+            <td style="padding:8px; border:1px solid #ddd;"><strong>Текущий рейтинг:</strong></td>
+            <td style="padding:8px; border:1px solid #ddd; font-size:20px;">{{ stars }} ({{ client.rating }}/5)</td>
+        </tr>
+    </table>
+    {% if client.rating < 5 %}
+        <p style="color:#666;">Продолжайте забирать заявки вовремя — рейтинг будет расти!</p>
+    {% else %}
+        <p style="color:#28a745;"><strong>Поздравляем! Ваш рейтинг полностью восстановлен!</strong></p>
+    {% endif %}
+    <hr>
+    <p style="color:#999; font-size:12px;">Warehouse Management System</p>
+</body>
+</html>

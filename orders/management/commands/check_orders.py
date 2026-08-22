@@ -7,6 +7,7 @@ from orders.services import (
     send_shipment_day_email,
     send_overdue_email,
     send_overdue_no_penalty_email,
+    send_rating_restored_email,
     return_stock,
     invalidate_all_cache,
 )
@@ -81,7 +82,9 @@ class Command(BaseCommand):
                 else:
                     client.last_overdue_date = None
                 client.save(update_fields=['rating', 'last_overdue_date'])
+                send_rating_restored_email(client)
                 restored_count += 1
+
 
         invalidate_all_cache()
 

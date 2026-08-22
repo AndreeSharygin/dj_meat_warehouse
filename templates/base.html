@@ -80,42 +80,44 @@
 
 <!-- Модальное окно контактов -->
 <div class="modal fade" id="contactsModal" tabindex="-1" aria-labelledby="contactsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header" style="background:#8B0000; color:#fff;">
                 <h5 class="modal-title" id="contactsModalLabel">📞 Контакты склада</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-0">
                 {% if site_contacts %}
-                    <table class="table table-borderless">
-                        <thead>
-                            <tr>
-                                <th>Должность</th>
-                                <th>Имя</th>
-                                <th>Телефон</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for contact in site_contacts %}
-                            <tr>
-                                <td>
-                                    {% if contact.role == 'admin' %}
-                                        <span class="badge bg-warning text-dark">Администратор</span>
-                                    {% else %}
-                                        <span class="badge bg-info">Менеджер</span>
-                                    {% endif %}
-                                </td>
-                                <td><strong>{{ contact.name }}</strong></td>
-                                <td><a href="tel:{{ contact.phone }}">{{ contact.phone }}</a></td>
-                                <td><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-borderless mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-nowrap">Должность</th>
+                                    <th class="text-nowrap">Имя</th>
+                                    <th class="text-nowrap">Телефон</th>
+                                    <th class="text-nowrap">Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contact in site_contacts %}
+                                <tr>
+                                    <td class="text-nowrap">
+                                        {% if contact.role == 'admin' %}
+                                            <span class="badge bg-warning text-dark">Администратор</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Менеджер</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-nowrap"><strong>{{ contact.name }}</strong></td>
+                                    <td class="text-nowrap"><a href="tel:{{ contact.phone }}">{{ contact.phone }}</a></td>
+                                    <td class="text-nowrap"><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 {% else %}
-                    <p class="text-muted text-center">Контакты не добавлены.</p>
+                    <p class="text-muted text-center p-3">Контакты не добавлены.</p>
                 {% endif %}
             </div>
             <div class="modal-footer">
