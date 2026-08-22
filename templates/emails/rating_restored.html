@@ -1,22 +1,79 @@
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="font-family:Arial,sans-serif; padding:20px;">
-    <h2 style="color:#28a745;">⭐ Ваш рейтинг восстановлен!</h2>
-    <p>Уважаемый(ая) <strong>{{ client.name }}</strong>,</p>
-    <p>Ваш рейтинг был повышен благодаря отсутствию просрочек.</p>
-    <table style="border-collapse:collapse; margin:15px 0;">
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>⭐ Рейтинг восстановлен!</h2>
+
+<p>Здравствуйте, <strong>{{ client.name }}</strong>!</p>
+
+<div class="success-box">
+    Ваш рейтинг был повышен благодаря отсутствию просроченных заявок.
+</div>
+
+<div class="info-box" style="text-align: center;">
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #6c757d;">Текущий рейтинг</p>
+    <div class="rating-stars" style="font-size: 28px;">{{ stars }}</div>
+    <p style="margin: 8px 0 0 0; font-size: 16px; font-weight: 600; color: #2c3e50;">{{ client.rating }} из 5</p>
+</div>
+
+{% if client.rating >= 5 %}
+    <div class="success-box" style="text-align: center;">
+        <strong>🎉 Поздравляем! Ваш рейтинг полностью восстановлен!</strong>
+        <p style="margin: 8px 0 0 0; font-size: 14px;">Вам доступна максимальная скидка.</p>
+    </div>
+{% else %}
+    <div class="warning-box">
+        <strong>📈 До полного восстановления:</strong> ещё {{ remaining }} ⭐
+        <p style="margin: 8px 0 0 0; font-size: 13px;">
+            Следующее повышение рейтинга — через <strong>{{ days_left }} дн.</strong>
+            при отсутствии просрочек.
+        </p>
+    </div>
+{% endif %}
+
+<h3>💡 Как рейтинг влияет на скидку</h3>
+<table class="items-table">
+    <thead>
         <tr>
-            <td style="padding:8px; border:1px solid #ddd;"><strong>Текущий рейтинг:</strong></td>
-            <td style="padding:8px; border:1px solid #ddd; font-size:20px;">{{ stars }} ({{ client.rating }}/5)</td>
+            <th>Рейтинг</th>
+            <th>Скидка</th>
+            <th>Статус</th>
         </tr>
-    </table>
-    {% if client.rating < 5 %}
-        <p style="color:#666;">Продолжайте забирать заявки вовремя — рейтинг будет расти!</p>
-    {% else %}
-        <p style="color:#28a745;"><strong>Поздравляем! Ваш рейтинг полностью восстановлен!</strong></p>
-    {% endif %}
-    <hr>
-    <p style="color:#999; font-size:12px;">Warehouse Management System</p>
-</body>
-</html>
+    </thead>
+    <tbody>
+        <tr{% if client.rating == 5 %} class="total-row"{% endif %}>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>5%</td>
+            <td>{% if client.rating == 5 %}<span class="badge badge-success">Текущий</span>{% endif %}</td>
+        </tr>
+        <tr{% if client.rating == 4 %} class="total-row"{% endif %}>
+            <td>⭐⭐⭐⭐</td>
+            <td>4%</td>
+            <td>{% if client.rating == 4 %}<span class="badge badge-success">Текущий</span>{% endif %}</td>
+        </tr>
+        <tr{% if client.rating == 3 %} class="total-row"{% endif %}>
+            <td>⭐⭐⭐</td>
+            <td>3%</td>
+            <td>{% if client.rating == 3 %}<span class="badge badge-info">Текущий</span>{% endif %}</td>
+        </tr>
+        <tr{% if client.rating == 2 %} class="total-row"{% endif %}>
+            <td>⭐⭐</td>
+            <td>2%</td>
+            <td>{% if client.rating == 2 %}<span class="badge badge-warning">Текущий</span>{% endif %}</td>
+        </tr>
+        <tr{% if client.rating == 1 %} class="total-row"{% endif %}>
+            <td>⭐</td>
+            <td>1%</td>
+            <td>{% if client.rating == 1 %}<span class="badge badge-danger">Текущий</span>{% endif %}</td>
+        </tr>
+        <tr{% if client.rating == 0 %} class="total-row"{% endif %}>
+            <td>—</td>
+            <td>0%</td>
+            <td>{% if client.rating == 0 %}<span class="badge badge-danger">Текущий</span>{% endif %}</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="info-box">
+    Забирайте заявки вовремя — рейтинг восстанавливается каждые <strong>5 дней</strong> без просрочек.
+</div>
+{% endblock %}
